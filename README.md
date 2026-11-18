@@ -1,42 +1,21 @@
 # Warehouse Picking Routes Optimization
 
-Backend case study pre GymBeam v Node.js a TypeScripte.
+Node.js and TypeScript service for the GymBeam case study. `POST /optimize` loads product positions from the warehouse API and returns the shortest picking route.
 
-## Aktuálny stav
+## Setup
 
-Projekt používa Express a spúšťa HTTP server na porte 3000. Endpoint `POST /optimize`
-skontroluje vstup, načíta skladové pozície a vráti najkratšiu trasu.
-
-## Požiadavky a inštalácia
-
-- Node.js 24, minimálne 24.14.1; `.nvmrc` uvádza použitú verziu.
-- npm 11.
-
-Po získaní projektu nainštaluj presné verzie závislostí z `package-lock.json`:
-
-```sh
-npm ci
-```
-
-Voliteľne priprav lokálnu konfiguráciu v PowerShelli:
+Requires Node.js 24.14.1 or later in the 24.x series and npm 11.
 
 ```powershell
+npm ci
 Copy-Item .env.example .env
 ```
 
-Do `.env` doplň `WAREHOUSE_API_KEY` zo zadania. Skutočný kľúč sa neukladá do zdrojového kódu
-ani do `.env.example`; súbor `.env` Git ignoruje. Server sa spustí aj bez kľúča, ale platná
-požiadavka na optimalizáciu vtedy vráti chybu konfigurácie.
+Set `WAREHOUSE_API_KEY` in `.env` using the key provided in the assignment. Git ignores `.env`. Run `npm run dev`; the server listens at `http://localhost:3000` by default. Set `PORT` to use a different port.
 
-Príkazy `dev` a `start` načítajú `.env`, ak existuje. Pri chýbajúcom súbore môže Node vypísať
-informačnú správu a pokračuje. Premenné prostredia majú prednosť pred hodnotami zo súboru.
-`PORT` určuje port servera a predvolená hodnota je 3000. Musí byť celé číslo od 1 do 65535.
-`WAREHOUSE_API_BASE_URL` určuje adresu skladového API a `WAREHOUSE_API_KEY` jeho prístupový kľúč.
+## Request and response
 
-## Vyskúšanie endpointu
-
-Po spustení `npm run dev` odošli v Postmane `POST` na `http://localhost:3000/optimize`.
-V záložke Body vyber `raw` a `JSON` a vlož:
+In Postman, select `POST http://localhost:3000/optimize` and Body → raw → JSON:
 
 ```json
 {
@@ -45,98 +24,45 @@ V záložke Body vyber `raw` a `JSON` a vlož:
 }
 ```
 
-Úspešná odpoveď má HTTP stav `200` a tento tvar:
+A `200` response looks like this:
 
 ```json
 {
-  "distance": 12.34,
+  "distance": 14.16227766016838,
   "pickingOrder": [
     { "productId": "product-1", "positionId": "position-31" },
-    { "productId": "product-2", "positionId": "position-45" }
+    { "productId": "product-2", "positionId": "position-241" }
   ]
 }
 ```
 
-Čísla a pozície vyššie ukazujú iba tvar odpovede; skutočný výsledok závisí od dát skladu.
-Pre každý produkt sa vykoná samostatný GET s hlavičkou `x-api-key`. Pozície s množstvom 0
-sa nepoužijú. Ak produkt nemá dostupnú pozíciu, server vráti `422`; chyba externého API
-alebo neplatné údaje z neho vrátia `502`.
-Pri chybnom tvare tela alebo poškodenom JSON server vráti stav `400` a JSON s vysvetlením
-`error` a vzorovým vstupom `example`. Pri inom `Content-Type` než `application/json`
-vráti stav `415` v rovnakom formáte.
+This is one observed result; current warehouse data may produce a different route.
 
-Povinné sú presne dve polia `products` a `startingPosition`. `products` musí byť neprázdne
-pole jedinečných neprázdnych reťazcov. `startingPosition` musí obsahovať presne `x`, `y`, `z`
-a každá súradnica musí byť konečné číslo; desatinné a záporné hodnoty sú povolené.
-Identifikátory produktov nekontrolujeme podľa vzoru `product-číslo`, pretože zadanie ich
-uvádza ako príklad, nie ako záväzný formát. TypeScriptové typy v `types.ts` opisujú
-platné dáta pre kód, kontrolu vstupu však vykonáva handler za behu aplikácie.
+The request requires a non-empty array of unique product IDs and finite numeric coordinates `x`, `y`, and `z`. Invalid JSON or input returns `400`; a `Content-Type` other than `application/json` returns `415`; a product with no available position returns `422`; a warehouse API failure returns `502`; and a missing API key or unexpected error returns `500`. Error responses contain `error`, and request errors also contain `example`.
 
-## Príkazy
+## Calculation and limitations
 
-| Príkaz | Účel |
-| --- | --- |
-| `npm run dev` | Spustí TypeScript cez tsx a sleduje zmeny vstupného súboru a jeho importov. Ukončenie: Ctrl+C. |
-| `npm run typecheck` | Overí typy zdrojového kódu a budúcich testov bez vytvárania JavaScriptu. |
-| `npm run build` | Preloží zdrojový kód zo `src` do `dist`. Testy sa do výsledku nezahrnú. |
-| `npm start` | Spustí `dist/index.js`; predtým treba vykonať build. |
-| `npm test` | Spustí vstavaný testovací nástroj Node.js cez tsx. |
-| `npm run test:watch` | Spustí testovací nástroj v režime sledovania zmien. |
+The service selects one position with available stock for each product. It explores product orders and positions, pruning branches that cannot improve the best route found so far. Distance is measured as a straight line in 3D space; the route starts at `startingPosition` and ends at the last product. The model does not account for aisles, obstacles, or a return to the start.
 
-`tsx` spúšťa TypeScript, ale nenahrádza kontrolu typov. Tú zabezpečuje `typecheck` a build.
-Projekt používa ES moduly (`type: module`) a režim TypeScriptu `NodeNext`.
-Pri budúcich relatívnych importoch používaj príponu `.js`, napríklad `./types.js`;
-TypeScript ju pri kontrole priradí k príslušnému `.ts` súboru. Typy importuj cez `import type`.
+The result is exact, but larger inputs may take a long time and block Node.js's main thread. There is no limit on order size or calculation time.
 
-## Rozdelenie zodpovedností
+## Verification and performance
 
-```text
-src/
-  index.ts                       Spustí HTTP server
-  server.ts                      Vytvorí Express aplikáciu a registruje endpoint
-  env.ts                         Načíta a overí číslo portu
-  http-request-handler.ts        Overí a odovzdá request funkcii pre výpočet trasy
-  warehouse-client.ts            Získa a overí dostupné pozície zo skladového API
-  types.ts                       Súradnice, skladové pozície, vstup a výsledok
-  picking-route-optimization.ts  Vypočíta 3D vzdialenosť a presnú najkratšiu trasu
-tests/
-  README.md                    Plán testov
+```sh
+npm run typecheck
+npm test
+npm run build
+npm run benchmark
 ```
 
-Súbory s `TODO` sú pripravené pre ďalšie kroky a nemajú predstierať hotovú funkcionalitu.
-Express parsuje JSON pred handlerom. Handler overí hodnoty za behu a až potom ich
-označí ako `PickingRequest` pre funkciu optimalizácie; toto označenie ich samo neoveruje.
-Funkcia `findShortestRoute` pracuje iba s dátami a nezávisí od HTTP ani od živého API.
-Skúša poradia produktov aj dostupné pozície. V pamäti drží najlepšiu trasu a
-vynechá vetvu, ktorá už nemôže priniesť kratší výsledok. Pri veľkých objednávkach
-môže presný výpočet trvať dlho; jeho praktické limity ešte zmeriame.
-TypeScriptové typy samy neoverujú JSON prijatý z requestu alebo externého systému;
-runtime validácia preto prebieha pri oboch hraniciach.
+Tests cover the endpoint, warehouse client, and optimizer, including a comparison with exhaustive search on small inputs. They do not need a live API. The benchmark uses a saved sample of 50 positions and measures calculation time without network calls. Median times from three runs on Windows with Node.js 24.14.1 and a Ryzen 5 5500U:
 
-## Dohodnuté pravidlá budúceho riešenia
+| Products | Positions | Calculation time |
+| ---: | ---: | ---: |
+| 2 | 8 | 0.1 ms |
+| 4 | 21 | 0.4 ms |
+| 6 | 28 | 12.9 ms |
+| 8 | 40 | 181 ms |
+| 10 | 50 | 7,121 ms |
 
-- Jeden business endpoint `POST /optimize`, lokálne na porte 3000.
-- Vstup: `products` a `startingPosition` so súradnicami `x`, `y`, `z`.
-- Jeden kus každého produktu, výber pozície s dostupným množstvom aspoň jeden kus.
-- Prázdny zoznam a duplicitné produkty sa odmietnu.
-- Produkt bez dostupnej pozície znamená chybu pre celú objednávku.
-- Vzdialenosť meriame priamo v 3D bez prekážok; predpokladáme rovnakú mierku osí.
-- Súradnice môžu byť aj desatinné. Vzdialenosť uvádzame v súradnicových jednotkách.
-- Trasa začína na `startingPosition` a končí pri poslednom produkte bez návratu na štart.
-- Cieľom je globálne minimum cez všetky poradia a výbery pozícií. Pri zhode ponecháme prvé nájdené minimum.
-- Výstup: `distance` a `pickingOrder` s dvojicami `productId`, `positionId`.
-- Limity presného výpočtu budeme merať postupným zväčšovaním vstupu; zatiaľ nie sú stanovené.
-
-Pri overení skladového API vrátil `product-1` sedem pozícií. Testovací identifikátor
-`product-999999999` vrátil HTTP 200 s prázdnym poľom. Ide o pozorovanie pri overení,
-nie o garantovaný obsah budúcich odpovedí.
-
-## Použité nástroje a dokumentácia
-
-- [TypeScript](https://www.typescriptlang.org/tsconfig/): striktná kontrola typov a preklad.
-- [tsx](https://tsx.is/): spúšťanie TypeScriptu počas vývoja.
-- [Node.js test runner](https://nodejs.org/docs/latest-v24.x/api/test.html): budúce testy cez `node:test` a `node:assert/strict`.
-- [Node.js CLI](https://nodejs.org/docs/latest-v24.x/api/cli.html): sledovanie zmien a načítanie `.env`.
-- [Express](https://expressjs.com/en/guide/routing/): HTTP server, smerovanie požiadaviek a JSON odpovede.
-
-Express je závislosť potrebná pri behu aplikácie. Na načítavanie skladových dát plánujeme zabudovaný `fetch`.
+Times also depend on the number of positions and the input data. Run `npm run benchmark` to measure performance on your machine.

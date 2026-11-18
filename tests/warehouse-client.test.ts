@@ -1,3 +1,8 @@
+/**
+ * Tests warehouse position loading and error handling without live API calls.
+ * npm test runs this file with a mocked fetch function.
+ */
+
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { fetchPositionsOfProducts, WarehouseClientError } from '../src/warehouse-client.js';
@@ -64,6 +69,23 @@ test('fetchPositionsOfProducts reports warehouse API failures', async (context) 
     else process.env.WAREHOUSE_API_KEY = previousKey;
   });
   context.mock.method(globalThis, 'fetch', async () => new Response('Unavailable', { status: 503 }));
+
+  await assert.rejects(fetchPositionsOfProducts(['product-1']), (error: unknown) =>
+    error instanceof WarehouseClientError && error.statusCode === 502,
+  );
+});
+
+/** Data from an external service must be checked even after HTTP 200. */
+test('fetchPositionsOfProducts rejects malformed warehouse data', async (context) => {
+  const previousKey = process.env.WAREHOUSE_API_KEY;
+  process.env.WAREHOUSE_API_KEY = 'test-key';
+  context.after(() => {
+    if (previousKey === undefined) delete process.env.WAREHOUSE_API_KEY;
+    else process.env.WAREHOUSE_API_KEY = previousKey;
+  });
+  context.mock.method(globalThis, 'fetch', async () => new Response(JSON.stringify([
+    { productId: 'product-1', positionId: 'position-1', x: 'invalid', y: 0, z: 0, quantity: 1 },
+  ]), { status: 200 }));
 
   await assert.rejects(fetchPositionsOfProducts(['product-1']), (error: unknown) =>
     error instanceof WarehouseClientError && error.statusCode === 502,

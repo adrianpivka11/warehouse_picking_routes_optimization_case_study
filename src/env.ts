@@ -1,6 +1,6 @@
 /**
- * Reads the HTTP port from the environment and uses 3000 by default.
- * The npm dev/start commands load .env into process.env when that file exists.
+ * Reads and validates the HTTP port, using 3000 by default.
+ * index.ts calls getPort() before starting the server.
  */
 export function getPort(): number {
   const port = Number(process.env.PORT ?? '3000');
@@ -11,5 +11,3 @@ export function getPort(): number {
 
   return port;
 }
-
-// TODO: Read WAREHOUSE_API_BASE_URL and WAREHOUSE_API_KEY when the API client is implemented.

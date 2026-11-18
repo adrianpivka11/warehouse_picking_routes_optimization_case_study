@@ -1,13 +1,15 @@
+/**
+ * Starts the HTTP server on the configured port.
+ * The npm dev and start commands run this file as the application entry point.
+ */
+
 import { getPort } from './env.js';
 import { createApp } from './server.js';
 
-/**
- * Starts the application on the configured port.
- * Keeping startup here lets tests create the Express app without opening port 3000.
- */
+
 const port = getPort();
 const app = createApp();
 
 app.listen(port, () => {
-  console.info(`Picking optimization server is listening on http://localhost:${port}`);
+  console.info(`[SERVER] Picking optimization server is listening on http://localhost:${port}`);
 });

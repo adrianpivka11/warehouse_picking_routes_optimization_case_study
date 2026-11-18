@@ -1,3 +1,8 @@
+/**
+ * Validates POST /optimize requests and converts application errors into HTTP responses.
+ * server.ts registers these handlers and the request timing middleware with Express.
+ */
+
 import type { NextFunction, Request, Response } from 'express';
 import { optimizeTheShortestRoute } from './picking-route-optimization.js';
 import type { PickingRequest } from './types.js';
@@ -11,7 +16,20 @@ const exampleRequest = {
 
 /** Sends the same helpful JSON format for all request validation errors. */
 function sendRequestError(response: Response, status: number, message: string): void {
+  console.warn(`[REQUEST HANDLER] Rejected request: HTTP ${status}; ${message}`);
   response.status(status).json({ error: message, example: exampleRequest });
+}
+
+/** Logs the final HTTP status and elapsed time, including failed requests. */
+export function logRequestOutcome(request: Request, response: Response, next: NextFunction): void {
+  const startedAt = performance.now();
+
+  response.on('finish', () => {
+    const elapsedMs = (performance.now() - startedAt).toFixed(1);
+    console.info(`[REQUEST HANDLER] ${request.method} ${request.path} -> HTTP ${response.statusCode} in ${elapsedMs} ms`);
+  });
+
+  next();
 }
 
 /** Checks that an object contains exactly the expected properties. */
@@ -73,7 +91,6 @@ export async function handleOptimizeRequest(request: Request, response: Response
     return;
   }
 
-  
   const body: unknown = request.body;
   const validationError = validateRequestBody(body);
   if (validationError !== null) {
@@ -83,17 +100,16 @@ export async function handleOptimizeRequest(request: Request, response: Response
 
   // Express has already parsed the JSON. Runtime checks above make this type assertion safe.
   const input = body as PickingRequest;
-  console.log('[REQUEST HANDLER] Valid request has been received containing body:', body)
-  console.log('[REQUEST HANDLER] Calling async fuction optimizeTheShortestRoute')
+  console.info('[REQUEST HANDLER] Valid request:', input);
   const result = await optimizeTheShortestRoute(input);
   response.json(result);
 }
 
 /**
- * Converts JSON syntax errors from express.json() into the same JSON error format.
- * Express parses the body before it calls handleOptimizeRequest.
+ * Converts request errors into JSON responses.
+ * Express sends parsing errors here before the route handler runs.
  */
-export function handleJsonParseError(
+export function handleRequestError(
   error: unknown,
   _request: Request,
   response: Response,
@@ -105,9 +121,16 @@ export function handleJsonParseError(
   }
 
   if (error instanceof WarehouseClientError) {
+    console.warn(`[REQUEST HANDLER] Warehouse request failed: HTTP ${error.statusCode}; ${error.message}`);
     response.status(error.statusCode).json({ error: error.message });
     return;
   }
 
-  next(error);
+  console.error('[REQUEST HANDLER] Unexpected request error:', error);
+  if (response.headersSent) {
+    next(error);
+    return;
+  }
+
+  response.status(500).json({ error: 'Internal server error.' });
 }

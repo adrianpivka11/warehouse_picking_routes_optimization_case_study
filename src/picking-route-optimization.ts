@@ -1,3 +1,8 @@
+/**
+ * Loads product positions and finds the shortest route using direct 3D distances.
+ * The HTTP handler calls the service, while tests and the benchmark call its search function.
+ */
+
 import type { PickingRequest, PickingResult, PickingStop, Position, ProductPosition } from './types.js';
 import { fetchPositionsOfProducts } from './warehouse-client.js';
 
@@ -24,6 +29,9 @@ export function findShortestRoute(
 ): PickingResult {
   let bestDistance = Infinity;
   let bestOrder: PickingStop[] = [];
+  let completeRoutes = 0;
+  let prunedBranches = 0;
+  const startedAt = performance.now();
 
   /** Builds one route by trying each remaining product and its positions. */
   function explore(
@@ -34,6 +42,7 @@ export function findShortestRoute(
   ): void {
     // A complete route can replace the best route found so far.
     if (remainingProducts.length === 0) {
+      completeRoutes++;
       if (currentDistance < bestDistance) {
         bestDistance = currentDistance;
         // Copy the order because later branches will change currentOrder.
@@ -52,6 +61,7 @@ export function findShortestRoute(
 
         // Future legs cannot reduce the distance already travelled.
         if (nextDistance >= bestDistance) {
+          prunedBranches++;
           continue;
         }
 
@@ -74,15 +84,18 @@ export function findShortestRoute(
     throw new Error('No complete picking route could be found.');
   }
 
+  console.info(
+    `[ROUTE OPTIMIZER] Calculation took ${(performance.now() - startedAt).toFixed(1)} ms; completed routes: ${completeRoutes}; pruned branches: ${prunedBranches}`,
+  );
   return { distance: bestDistance, pickingOrder: bestOrder };
 }
 
 /** Loads warehouse positions and returns the shortest route for one order. */
 export async function optimizeTheShortestRoute(input: PickingRequest): Promise<PickingResult> {
-  console.log('[ROUTE OPTIMIZER] Calling async fuction fetchPositionsOfProducts with input:', input.products)
+  console.info('[ROUTE OPTIMIZER] Loading positions for:', input.products);
   const positionsOfProducts = await fetchPositionsOfProducts(input.products);
-  console.log('[ROUTE OPTIMIZER] Warehouse client returned following positions of products:', positionsOfProducts)
-  const shortestRoute = findShortestRoute(input.startingPosition, input.products, positionsOfProducts)
-  console.log('[ROUTE OPTIMIZER] Returning the shortest route to the Express server app:', shortestRoute)
-  return shortestRoute ;
+  console.info(`[ROUTE OPTIMIZER] Loaded ${positionsOfProducts.length} available positions; calculating route.`);
+  const shortestRoute = findShortestRoute(input.startingPosition, input.products, positionsOfProducts);
+  console.info('[ROUTE OPTIMIZER] Shortest route:', shortestRoute);
+  return shortestRoute;
 }

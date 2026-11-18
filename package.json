@@ -14,7 +14,8 @@
     "build": "tsc -p tsconfig.build.json",
     "start": "node --env-file-if-exists=.env dist/index.js",
     "test": "node --import tsx --test",
-    "test:watch": "node --import tsx --test --watch"
+    "test:watch": "node --import tsx --test --watch",
+    "benchmark": "node --import tsx scripts/benchmark.ts"
   },
   "devDependencies": {
     "@types/express": "5.0.6",

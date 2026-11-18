@@ -1,3 +1,8 @@
+/**
+ * Fetches and validates available product positions from the warehouse API.
+ * picking-route-optimization.ts uses the positions, and the HTTP handler handles its errors.
+ */
+
 import type { ProductPosition } from './types.js';
 
 const defaultApiUrl = 'https://api.gymbeam.io/case-study-picking-optimization';
@@ -48,6 +53,7 @@ export async function fetchPositionsOfProducts(productIds: string[]): Promise<Pr
 
   for (const productId of productIds) {
     const url = `${apiUrl}/products/${encodeURIComponent(productId)}/positions`;
+    const startedAt = performance.now();
     let response: Response;
 
     try {
@@ -57,10 +63,12 @@ export async function fetchPositionsOfProducts(productIds: string[]): Promise<Pr
         signal: AbortSignal.timeout(10_000),
       });
     } catch {
+      console.warn(`[WAREHOUSE CLIENT] ${productId}: request failed after ${(performance.now() - startedAt).toFixed(1)} ms`);
       throw new WarehouseClientError(502, `Warehouse API could not be reached for ${productId}.`);
     }
 
     if (!response.ok) {
+      console.warn(`[WAREHOUSE CLIENT] ${productId}: HTTP ${response.status} in ${(performance.now() - startedAt).toFixed(1)} ms`);
       throw new WarehouseClientError(502, `Warehouse API returned HTTP ${response.status} for ${productId}.`);
     }
 
@@ -76,6 +84,9 @@ export async function fetchPositionsOfProducts(productIds: string[]): Promise<Pr
     }
 
     const availablePositions = data.filter((position: ProductPosition) => position.quantity > 0);
+    console.info(
+      `[WAREHOUSE CLIENT] ${productId}: HTTP ${response.status}, ${availablePositions.length} available positions in ${(performance.now() - startedAt).toFixed(1)} ms`,
+    );
     if (availablePositions.length === 0) {
       throw new WarehouseClientError(422, `No available warehouse position for ${productId}.`);
     }

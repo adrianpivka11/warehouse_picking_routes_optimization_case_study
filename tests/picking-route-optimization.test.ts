@@ -1,7 +1,12 @@
+/**
+ * Tests 3D distances and the exact route search on small product orders.
+ * npm test runs this file and compares results with independent exhaustive search.
+ */
+
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { findShortestRoute } from '../src/picking-route-optimization.js';
-import type { ProductPosition } from '../src/types.js';
+import type { Position, ProductPosition } from '../src/types.js';
 
 /** Checks both the choice of storage position and the order of products. */
 test('findShortestRoute chooses the shortest of eight possible routes', () => {
@@ -58,4 +63,74 @@ test('findShortestRoute rejects an order that cannot be completed', () => {
     () => findShortestRoute({ x: 0, y: 0, z: 0 }, ['A', 'B'], positions),
     /No complete picking route/,
   );
+});
+
+/** Lists all product orders without using the production optimizer's pruning. */
+function allOrders(productIds: string[]): string[][] {
+  if (productIds.length === 0) return [[]];
+
+  const orders: string[][] = [];
+  for (const productId of productIds) {
+    for (const rest of allOrders(productIds.filter((id) => id !== productId))) {
+      orders.push([productId, ...rest]);
+    }
+  }
+  return orders;
+}
+
+/** Independently checks every order and every choice of product position. */
+function exhaustiveDistance(start: Position, productIds: string[], positions: ProductPosition[]): number {
+  let minimum = Infinity;
+
+  for (const order of allOrders(productIds)) {
+    function choosePosition(index: number, current: Position, length: number): void {
+      if (index === order.length) {
+        minimum = Math.min(minimum, length);
+        return;
+      }
+
+      for (const position of positions.filter((item) => item.productId === order[index])) {
+        const leg = Math.hypot(position.x - current.x, position.y - current.y, position.z - current.z);
+        choosePosition(index + 1, position, length + leg);
+      }
+    }
+
+    choosePosition(0, start, 0);
+  }
+
+  return minimum;
+}
+
+/** Compares the pruned optimizer with full enumeration on varied small inputs. */
+test('findShortestRoute matches exhaustive search for two to four products', () => {
+  const start = { x: 2, y: -1, z: 0 };
+
+  for (let scenario = 0; scenario < 12; scenario++) {
+    const productIds = Array.from({ length: 2 + (scenario % 3) }, (_, index) => `product-${index}`);
+    const positions: ProductPosition[] = [];
+
+    for (let index = 0; index < productIds.length; index++) {
+      for (let choice = 0; choice < 1 + ((scenario + index) % 3); choice++) {
+        positions.push({
+          productId: productIds[index]!,
+          positionId: `position-${index}-${choice}`,
+          x: ((scenario * 13 + index * 7 + choice * 11) % 21) - 10,
+          y: ((scenario * 5 + index * 11 + choice * 3) % 17) - 8,
+          z: ((scenario + index + choice) % 3) * 4,
+          quantity: 1,
+        });
+      }
+    }
+
+    const expected = exhaustiveDistance(start, productIds, positions);
+    const actual = findShortestRoute(start, productIds, positions);
+
+    assert.ok(Math.abs(actual.distance - expected) < 1e-9, `scenario ${scenario}`);
+    assert.equal(actual.pickingOrder.length, productIds.length, `scenario ${scenario}`);
+    assert.deepEqual(
+      [...actual.pickingOrder.map((stop) => stop.productId)].sort(),
+      [...productIds].sort(),
+      `scenario ${scenario}`,
+    );
+  }
 });

@@ -1,0 +1,423 @@
+{
+  "source": "GymBeam case-study warehouse API",
+  "capturedOn": "2026-11-18",
+  "startingPosition": {
+    "x": 0,
+    "y": 0,
+    "z": 0
+  },
+  "productIds": [
+    "product-4",
+    "product-2",
+    "product-1",
+    "product-5",
+    "product-10",
+    "product-9",
+    "product-11",
+    "product-12",
+    "product-19",
+    "product-14"
+  ],
+  "positions": [
+    {
+      "positionId": "position-591",
+      "x": 63,
+      "y": 1,
+      "z": 200,
+      "productId": "product-4",
+      "quantity": 16
+    },
+    {
+      "positionId": "position-260",
+      "x": 60,
+      "y": 12,
+      "z": 0,
+      "productId": "product-4",
+      "quantity": 7
+    },
+    {
+      "positionId": "position-120",
+      "x": 0,
+      "y": 6,
+      "z": 0,
+      "productId": "product-4",
+      "quantity": 9
+    },
+    {
+      "positionId": "position-232",
+      "x": 66,
+      "y": 11,
+      "z": 0,
+      "productId": "product-4",
+      "quantity": 14
+    },
+    {
+      "positionId": "position-630",
+      "x": 0,
+      "y": 5,
+      "z": 200,
+      "productId": "product-4",
+      "quantity": 3
+    },
+    {
+      "positionId": "position-241",
+      "x": 3,
+      "y": 12,
+      "z": 0,
+      "productId": "product-2",
+      "quantity": 12
+    },
+    {
+      "positionId": "position-245",
+      "x": 15,
+      "y": 12,
+      "z": 0,
+      "productId": "product-2",
+      "quantity": 5
+    },
+    {
+      "positionId": "position-234",
+      "x": 72,
+      "y": 11,
+      "z": 0,
+      "productId": "product-2",
+      "quantity": 12
+    },
+    {
+      "positionId": "position-31",
+      "x": 3,
+      "y": 1,
+      "z": 0,
+      "productId": "product-1",
+      "quantity": 13
+    },
+    {
+      "positionId": "position-449",
+      "x": 87,
+      "y": 7,
+      "z": 100,
+      "productId": "product-1",
+      "quantity": 4
+    },
+    {
+      "positionId": "position-404",
+      "x": 42,
+      "y": 6,
+      "z": 100,
+      "productId": "product-1",
+      "quantity": 16
+    },
+    {
+      "positionId": "position-282",
+      "x": 36,
+      "y": 0,
+      "z": 100,
+      "productId": "product-1",
+      "quantity": 12
+    },
+    {
+      "positionId": "position-458",
+      "x": 24,
+      "y": 10,
+      "z": 100,
+      "productId": "product-1",
+      "quantity": 10
+    },
+    {
+      "positionId": "position-175",
+      "x": 75,
+      "y": 7,
+      "z": 0,
+      "productId": "product-1",
+      "quantity": 9
+    },
+    {
+      "positionId": "position-397",
+      "x": 21,
+      "y": 6,
+      "z": 100,
+      "productId": "product-1",
+      "quantity": 6
+    },
+    {
+      "positionId": "position-578",
+      "x": 24,
+      "y": 1,
+      "z": 200,
+      "productId": "product-5",
+      "quantity": 5
+    },
+    {
+      "positionId": "position-536",
+      "x": 78,
+      "y": 12,
+      "z": 100,
+      "productId": "product-5",
+      "quantity": 7
+    },
+    {
+      "positionId": "position-216",
+      "x": 18,
+      "y": 11,
+      "z": 0,
+      "productId": "product-5",
+      "quantity": 14
+    },
+    {
+      "positionId": "position-647",
+      "x": 51,
+      "y": 5,
+      "z": 200,
+      "productId": "product-5",
+      "quantity": 15
+    },
+    {
+      "positionId": "position-218",
+      "x": 24,
+      "y": 11,
+      "z": 0,
+      "productId": "product-5",
+      "quantity": 15
+    },
+    {
+      "positionId": "position-679",
+      "x": 57,
+      "y": 6,
+      "z": 200,
+      "productId": "product-5",
+      "quantity": 3
+    },
+    {
+      "positionId": "position-551",
+      "x": 33,
+      "y": 0,
+      "z": 200,
+      "productId": "product-10",
+      "quantity": 7
+    },
+    {
+      "positionId": "position-283",
+      "x": 39,
+      "y": 0,
+      "z": 100,
+      "productId": "product-10",
+      "quantity": 17
+    },
+    {
+      "positionId": "position-28",
+      "x": 84,
+      "y": 0,
+      "z": 0,
+      "productId": "product-10",
+      "quantity": 3
+    },
+    {
+      "positionId": "position-230",
+      "x": 60,
+      "y": 11,
+      "z": 0,
+      "productId": "product-10",
+      "quantity": 7
+    },
+    {
+      "positionId": "position-805",
+      "x": 75,
+      "y": 12,
+      "z": 200,
+      "productId": "product-10",
+      "quantity": 1
+    },
+    {
+      "positionId": "position-325",
+      "x": 75,
+      "y": 1,
+      "z": 100,
+      "productId": "product-9",
+      "quantity": 7
+    },
+    {
+      "positionId": "position-753",
+      "x": 9,
+      "y": 11,
+      "z": 200,
+      "productId": "product-9",
+      "quantity": 9
+    },
+    {
+      "positionId": "position-328",
+      "x": 84,
+      "y": 1,
+      "z": 100,
+      "productId": "product-11",
+      "quantity": 13
+    },
+    {
+      "positionId": "position-278",
+      "x": 24,
+      "y": 0,
+      "z": 100,
+      "productId": "product-11",
+      "quantity": 9
+    },
+    {
+      "positionId": "position-150",
+      "x": 0,
+      "y": 7,
+      "z": 0,
+      "productId": "product-11",
+      "quantity": 8
+    },
+    {
+      "positionId": "position-628",
+      "x": 84,
+      "y": 2,
+      "z": 200,
+      "productId": "product-11",
+      "quantity": 16
+    },
+    {
+      "positionId": "position-679",
+      "x": 57,
+      "y": 6,
+      "z": 200,
+      "productId": "product-11",
+      "quantity": 11
+    },
+    {
+      "positionId": "position-747",
+      "x": 81,
+      "y": 10,
+      "z": 200,
+      "productId": "product-12",
+      "quantity": 5
+    },
+    {
+      "positionId": "position-141",
+      "x": 63,
+      "y": 6,
+      "z": 0,
+      "productId": "product-12",
+      "quantity": 20
+    },
+    {
+      "positionId": "position-58",
+      "x": 84,
+      "y": 1,
+      "z": 0,
+      "productId": "product-12",
+      "quantity": 11
+    },
+    {
+      "positionId": "position-390",
+      "x": 0,
+      "y": 6,
+      "z": 100,
+      "productId": "product-12",
+      "quantity": 14
+    },
+    {
+      "positionId": "position-212",
+      "x": 6,
+      "y": 11,
+      "z": 0,
+      "productId": "product-12",
+      "quantity": 9
+    },
+    {
+      "positionId": "position-614",
+      "x": 42,
+      "y": 2,
+      "z": 200,
+      "productId": "product-12",
+      "quantity": 1
+    },
+    {
+      "positionId": "position-509",
+      "x": 87,
+      "y": 11,
+      "z": 100,
+      "productId": "product-12",
+      "quantity": 12
+    },
+    {
+      "positionId": "position-105",
+      "x": 45,
+      "y": 5,
+      "z": 0,
+      "productId": "product-19",
+      "quantity": 1
+    },
+    {
+      "positionId": "position-349",
+      "x": 57,
+      "y": 2,
+      "z": 100,
+      "productId": "product-19",
+      "quantity": 11
+    },
+    {
+      "positionId": "position-154",
+      "x": 12,
+      "y": 7,
+      "z": 0,
+      "productId": "product-19",
+      "quantity": 4
+    },
+    {
+      "positionId": "position-440",
+      "x": 60,
+      "y": 7,
+      "z": 100,
+      "productId": "product-19",
+      "quantity": 6
+    },
+    {
+      "positionId": "position-799",
+      "x": 57,
+      "y": 12,
+      "z": 200,
+      "productId": "product-14",
+      "quantity": 16
+    },
+    {
+      "positionId": "position-544",
+      "x": 12,
+      "y": 0,
+      "z": 200,
+      "productId": "product-14",
+      "quantity": 2
+    },
+    {
+      "positionId": "position-753",
+      "x": 9,
+      "y": 11,
+      "z": 200,
+      "productId": "product-14",
+      "quantity": 9
+    },
+    {
+      "positionId": "position-517",
+      "x": 21,
+      "y": 12,
+      "z": 100,
+      "productId": "product-14",
+      "quantity": 20
+    },
+    {
+      "positionId": "position-412",
+      "x": 66,
+      "y": 6,
+      "z": 100,
+      "productId": "product-14",
+      "quantity": 20
+    },
+    {
+      "positionId": "position-696",
+      "x": 18,
+      "y": 7,
+      "z": 200,
+      "productId": "product-14",
+      "quantity": 2
+    }
+  ]
+}

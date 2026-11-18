@@ -1,3 +1,8 @@
+/**
+ * Tests HTTP responses and request validation through a running Express application.
+ * npm test runs this file; warehouse fetches are mocked for repeatable results.
+ */
+
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createApp } from '../src/server.js';
@@ -63,6 +68,21 @@ test('POST /optimize loads positions and returns the shortest route', async (con
     assert.equal(unavailableResponse.status, 422);
     assert.deepEqual(await unavailableResponse.json(), {
       error: 'No available warehouse position for product-999999999.',
+    });
+
+    // A missing API key is a server configuration error, not a successful route.
+    process.env.WAREHOUSE_API_KEY = '';
+    const missingKeyResponse = await fetch(`http://localhost:${address.port}/optimize`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        products: ['product-1'],
+        startingPosition: { x: 0, y: 0, z: 0 },
+      }),
+    });
+    assert.equal(missingKeyResponse.status, 500);
+    assert.deepEqual(await missingKeyResponse.json(), {
+      error: 'Warehouse API key is not configured.',
     });
   } finally {
     await new Promise<void>((resolve, reject) => {

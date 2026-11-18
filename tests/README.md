@@ -1,16 +1,9 @@
-# Budúce testy
+# Tests
 
-Testy budú mať príponu `.test.ts` a budú používať vstavané moduly `node:test` a `node:assert/strict`.
-TypeScriptové testy spustíme cez `tsx`; samostatnú testovaciu knižnicu nepotrebujeme.
-Testy endpointu a skladového klienta používajú simulované odpovede externého API.
-Testy výpočtu trasy používajú malé príklady s ručne overiteľným výsledkom.
+Run with `npm test`. Tests use `node:test` and do not require a live warehouse API or an API key.
 
-Pri implementácii doplníme najmä:
+- `server.test.ts` — **integration tests:** send real HTTP requests through the Express app; the warehouse API is mocked.
+- `warehouse-client.test.ts` — **unit tests:** check position loading and API errors with a mocked `fetch`.
+- `picking-route-optimization.test.ts` — **unit tests:** check distances and compare shortest routes with exhaustive search on small inputs.
 
-- `picking-route-optimization.test.ts`: doplniť meranie výkonu pri väčšom počte produktov.
-- `warehouse-client.test.ts`: doplniť ďalšie neplatné dátové tvary a sieťové zlyhania.
-- `http-request-handler.test.ts`: ďalšie chybové odpovede a prepojenie s výpočtom trasy.
-
-Bežné testy nebudú potrebovať skutočný API kľúč ani živé skladové API.
-Aktuálne HTTP testy overujú prijatý tvar vstupu, výsledok a chybové odpovede;
-správnosť algoritmu overujú malé pripravené príklady.
+`fixtures/warehouse-positions-10.json` provides repeatable data for `npm run benchmark`.
