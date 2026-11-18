@@ -5,8 +5,7 @@ Backend case study pre GymBeam v Node.js a TypeScripte.
 ## Aktuálny stav
 
 Projekt používa Express a spúšťa HTTP server na porte 3000. Endpoint `POST /optimize`
-prijíma JSON požiadavku, ale zatiaľ vracia stav `501` a správu, že výpočet trasy ešte nie je implementovaný.
-Načítavanie skladových dát, výpočet trasy a validáciu obsahu requestu doplníme v ďalších krokoch.
+skontroluje vstup, načíta skladové pozície a vráti najkratšiu trasu.
 
 ## Požiadavky a inštalácia
 
@@ -25,13 +24,14 @@ Voliteľne priprav lokálnu konfiguráciu v PowerShelli:
 Copy-Item .env.example .env
 ```
 
-Do `.env` neskôr doplň `WAREHOUSE_API_KEY` zo zadania. Skutočný kľúč sa neukladá do zdrojového kódu
-ani do `.env.example`; súbor `.env` Git ignoruje. Server funguje aj bez kľúča.
+Do `.env` doplň `WAREHOUSE_API_KEY` zo zadania. Skutočný kľúč sa neukladá do zdrojového kódu
+ani do `.env.example`; súbor `.env` Git ignoruje. Server sa spustí aj bez kľúča, ale platná
+požiadavka na optimalizáciu vtedy vráti chybu konfigurácie.
 
 Príkazy `dev` a `start` načítajú `.env`, ak existuje. Pri chýbajúcom súbore môže Node vypísať
 informačnú správu a pokračuje. Premenné prostredia majú prednosť pred hodnotami zo súboru.
 `PORT` určuje port servera a predvolená hodnota je 3000. Musí byť celé číslo od 1 do 65535.
-`WAREHOUSE_API_BASE_URL` a `WAREHOUSE_API_KEY` sú pripravené pre neskoršiu komunikáciu so skladom.
+`WAREHOUSE_API_BASE_URL` určuje adresu skladového API a `WAREHOUSE_API_KEY` jeho prístupový kľúč.
 
 ## Vyskúšanie endpointu
 
@@ -45,14 +45,32 @@ V záložke Body vyber `raw` a `JSON` a vlož:
 }
 ```
 
-Aktuálna odpoveď má HTTP stav `501`:
+Úspešná odpoveď má HTTP stav `200` a tento tvar:
 
 ```json
-{ "error": "Picking route optimization is not implemented yet." }
+{
+  "distance": 12.34,
+  "pickingOrder": [
+    { "productId": "product-1", "positionId": "position-31" },
+    { "productId": "product-2", "positionId": "position-45" }
+  ]
+}
 ```
 
-Stav `501` znamená, že endpoint je dostupný, ale požadovaný výpočet ešte neexistuje.
-Obsah JSON sa zatiaľ nevaliduje; typy v `types.ts` samy neoverujú údaje poslané klientom.
+Čísla a pozície vyššie ukazujú iba tvar odpovede; skutočný výsledok závisí od dát skladu.
+Pre každý produkt sa vykoná samostatný GET s hlavičkou `x-api-key`. Pozície s množstvom 0
+sa nepoužijú. Ak produkt nemá dostupnú pozíciu, server vráti `422`; chyba externého API
+alebo neplatné údaje z neho vrátia `502`.
+Pri chybnom tvare tela alebo poškodenom JSON server vráti stav `400` a JSON s vysvetlením
+`error` a vzorovým vstupom `example`. Pri inom `Content-Type` než `application/json`
+vráti stav `415` v rovnakom formáte.
+
+Povinné sú presne dve polia `products` a `startingPosition`. `products` musí byť neprázdne
+pole jedinečných neprázdnych reťazcov. `startingPosition` musí obsahovať presne `x`, `y`, `z`
+a každá súradnica musí byť konečné číslo; desatinné a záporné hodnoty sú povolené.
+Identifikátory produktov nekontrolujeme podľa vzoru `product-číslo`, pretože zadanie ich
+uvádza ako príklad, nie ako záväzný formát. TypeScriptové typy v `types.ts` opisujú
+platné dáta pre kód, kontrolu vstupu však vykonáva handler za behu aplikácie.
 
 ## Príkazy
 
@@ -77,18 +95,23 @@ src/
   index.ts                       Spustí HTTP server
   server.ts                      Vytvorí Express aplikáciu a registruje endpoint
   env.ts                         Načíta a overí číslo portu
-  http-request-handler.ts        Odpovie na POST /optimize
-  warehouse-client.ts            Budúca komunikácia s externým API
+  http-request-handler.ts        Overí a odovzdá request funkcii pre výpočet trasy
+  warehouse-client.ts            Získa a overí dostupné pozície zo skladového API
   types.ts                       Súradnice, skladové pozície, vstup a výsledok
-  picking-route-optimization.ts  Budúci výpočet 3D vzdialenosti a presnej najkratšej trasy
+  picking-route-optimization.ts  Vypočíta 3D vzdialenosť a presnú najkratšiu trasu
 tests/
   README.md                    Plán testov
 ```
 
 Súbory s `TODO` sú pripravené pre ďalšie kroky a nemajú predstierať hotovú funkcionalitu.
-Výpočet trasy bude pracovať s dátami a nebude závisieť od HTTP ani od živého API.
+Express parsuje JSON pred handlerom. Handler overí hodnoty za behu a až potom ich
+označí ako `PickingRequest` pre funkciu optimalizácie; toto označenie ich samo neoveruje.
+Funkcia `findShortestRoute` pracuje iba s dátami a nezávisí od HTTP ani od živého API.
+Skúša poradia produktov aj dostupné pozície. V pamäti drží najlepšiu trasu a
+vynechá vetvu, ktorá už nemôže priniesť kratší výsledok. Pri veľkých objednávkach
+môže presný výpočet trvať dlho; jeho praktické limity ešte zmeriame.
 TypeScriptové typy samy neoverujú JSON prijatý z requestu alebo externého systému;
-runtime validáciu pridáme pri implementácii týchto hraníc.
+runtime validácia preto prebieha pri oboch hraniciach.
 
 ## Dohodnuté pravidlá budúceho riešenia
 
