@@ -2,6 +2,7 @@
 
 Node.js and TypeScript service for the GymBeam case study. `POST /optimize` loads product positions from the warehouse API and returns the shortest picking route.
 
+
 ## Setup
 
 Requires Node.js 24.14.1 or later in the 24.x series and npm 11.
