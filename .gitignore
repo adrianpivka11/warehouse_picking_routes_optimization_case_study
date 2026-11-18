@@ -1,0 +1,14 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+*.log
+
+.env
+.env.*
+!.env.example
+
+# Local working files, including rendered case-study pages.
+tmp/
+.DS_Store
+Thumbs.db

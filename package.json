@@ -1,0 +1,28 @@
+{
+  "name": "warehouse-picking-routes-optimization",
+  "version": "0.1.0",
+  "private": true,
+  "description": "GymBeam case study: warehouse order picking route optimization.",
+  "type": "module",
+  "engines": {
+    "node": ">=24.14.1 <25",
+    "npm": ">=11 <12"
+  },
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env --import tsx --watch src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node --env-file-if-exists=.env dist/index.js",
+    "test": "node --import tsx --test",
+    "test:watch": "node --import tsx --test --watch"
+  },
+  "devDependencies": {
+    "@types/express": "5.0.6",
+    "@types/node": "24.19.2",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2"
+  },
+  "dependencies": {
+    "express": "5.3.0"
+  }
+}
